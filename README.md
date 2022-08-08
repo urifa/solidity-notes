@@ -10,7 +10,7 @@ A smart contract is the fundamental building block of Ethereum applications. A c
 
 The Ethereum Virtual Machine or EVP is the runtime environment for smart contracts in Ethereum.  It is completely isolated, which means that code running inside the EVM has no access to network, filesystems or other processes.
 
-There are two kinds of accounts in Ethereum which share the same address space: **external accounts**, which are controlled by public-private key pairs (i.e. humand), and **contract accounts, which are controlled by the code stored together wit the account.
+There are two kinds of accounts in Ethereum which share the same address space: **external accounts**, which are controlled by public-private key pairs (i.e. humand), and **contract accounts**, which are controlled by the code stored together wit the account.
 
 The address of an external account is determined from the public key while the address of a contract is determined at the time the contract is created (it is derived from the creator address and the number of transactions sent from that address).
 
@@ -97,26 +97,6 @@ contract Cat is Animal {
 ```
 Declare a contract named "Cat" which inherits from the contract "Animal".
 
-## Variables
-
-A variable is a placeholder for data which can be manipulated at runtime. Variables allow users to retrieve and chage the stored information. 
-
-### State Variables
-
-State variables are stored in the contract storage area. They are stored in a compact way such that multiple values sometimes use the same storage slot.
-
-Except for dynamically-sized arrays and mappings, data is stored contiguously item after item starting with the first state variable, and for each variable, a size in bytes is determined according to its type.
-
-Dynamically-sized arrays an mappings, due to their unpredictable size ¡, cannot be stored "in between" the state variables preceding and following them. Instead, they are considered to occupy  only 32 bytes  and the elements they contain are stored starting at a different storage slot that is computed using a Keccak-256 hash.
-
-There are cases where you will need to explicitly declare is a variable is stored in storage or in memory using the keywords `storage` and `memory`, namely when dealing with structs and arrays within functions.
-
-### Local Variables
-
-Local variables are declared 
-
-### Global Variables
-
 ## Data Types
 
 Solidity is a statically typed language, which means that the type of each variable (state or local) needs to be specified. Solidity provides several elementary types which can be combined to form complex types.
@@ -154,48 +134,127 @@ uint e = 450;  // uint is an alias for uint256
 
 Address type is indicated by `address` or `address payable` keywords, and  holds a 20 byte value, which is the size of an Ethereum address. The difference between the two types is that `address payable` is an address you can send Ether to, while you are not supposed to send Ether to a plain `address`.
 
-These are some examples for address declarations:
+These are some examples for address declarations. In the first case we declare a variable called `addr1` that holds an address type. In the second case, we declare a second variable called `addr2` that holds an address payable type, and assign a value to it.
 
 ```
 address addr1;  
 address payable addr2 = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c;
 ```
 
+You can use some members associated to addresses. The most important ones are `<address>.balance`, `<address payable>.transfer` and `<address payable>.send`.
+
+Here you can see some examples using address members with the two addresses declared before:
+
+```
+addr1.balance;  // Query the balance in Wei of addr1
+addr2.transfer(uint256 amount);  // Send given amount of Wei to addr2. Forwards 2300 gas stipend
+addr2.send(uint256 amount);  // Send given amount og Wei to addr2 and returns `false` on failure. Forwards 2300 gas stipend
+```
+
 #### Contract Types
 
 Every contract defines its own type. You can implicitly convert contracts to contracts they inherit from. Contracts can be explicitly converted to and from the `address` type.
 
-You can declare a local variable of contract type, and call functions on that contract. The members of contract types are the external functiobs of the contract including any state variable marked as `public`.
-
 In this example, we use the contract "Animal" declared before, to declare a local variable of this contract type named "animal":
 
 ```
-Animal animal;
+Animal animal {
+    // ....
+}
 ```
+
+The members of contract types are the external functions of the contract including any state variable marked as `public`.
 
 #### Function Types
 
-Function types are the type of functions. They come in two flavours: internal and external functions. Internal functions can only be called inside the current contract, and external functions consist of an address and a function signature, and they can be passed via and returned from externa function calls.
+Function types are the type of functions. 
 
-You can mark a function as internal or external using the `internal` and `external` keywords, but by default function types are internal, so the `internal` keyword can be omitted. Function types accept these parameter types: `pure`, `view` and `payable`.
+Functions can be internal (can only be called inside the current contract) and external (consist of an address and a function signature, and they can be passed via and returned from external function calls). You can mark a function as internal or external using the `internal` and `external` keywords, but by default function types are internal.
 
-In this example, we declare a function named "eat", that accept a `uint` parameter, that is public, and returns nothing:
+Function types also accept these parameter types: `pure`, `view` and `payable`.
+
+In this example, we declare a function named "eat", that accept a `uint` parameter. We declare it as a `public` and `view` function, and it returns a uint256 value:
 
 ```
-function eat(uint) public {
+function eat(uint) public view returns (uint256) {
     // ...
 }
 ```
 
 ### Reference Types
 
-Values of reference type can be modified through multiple different names, so when using a reference type, you need to explicirly provide the data location where the type is stored: `storage`, `memory` or `calldata`.
+Values of reference type can be modified through multiple different names, so when using a reference type, you need to explicitly provide the data location where the type is stored: `storage`, `memory` or `calldata`.
+
+Data locations are not only relevant for persistency of data, but also for the semantics of assignments. 
+
+- Assignments between `storage` and `memory` always create an independent copy.
+- Assignments from `memory` to `memory` only create references, so changes to one memory variable are also visible in all other memory variables referring to the same data.
+- Assignments from `storage` to a local storage variable also only assign a reference.
 
 #### Arrays
 
+Array data types can have a compile-time fixed size, or a dynamic size. Array elements can be of any type, including mapping or struct. Arrays are declared using the data type of their members and followed by squared brackets.
+
+In this example we declare two arrays: a fixed size array called "arr1", which we assign a value to it, and a dynamic size array called "arr2":
+
+```
+uint[3] public arr1 = [1, 2, 3];
+uint[] public arr2;
+```
+
+Memory arrays with dynamic length can be created using the `new` operator. As opposed to storage arrays, it is not possible to resize memory arrays  (e.g. the `.push` member function is not available).
+
+Arrays accept some members. The most important ones are `<array>.length`, `<array>.push()` and `<array>.pop()`. Both `<array>.push()` and `<array>.pop()` are only available for dynamic storage arrays and has a gas cost.
+
+Here you can see some examples using these members with the two arrays declared before:
+
+```
+arr1.length;  // Query the length of arr1
+arr2.push(x);  // Append a given element at the end of arr2
+arr2.pop();  // Remove an element from the end of the array
+```
+
 #### Structs
 
+Struct data types provides a way of grouping together related data. Structs are declared using the `struct` keyword, followed by the name of the struct, and for accessing any element of the struct you can use the dot operator.
+
+In all functions, a struct type is assigned to a local variable with data location `storage`. This does not copy the struct but only stores a reference so that assignments to members of the local variable actually write to the state.
+
+In this example we declare a struct names "Book", which contains three properties and defines its own struct type. Then we create two variables, "book1" and "book2" of the type "Book", that will contian instances of this previous defined struct. The variable "book1" is initialized, and the variable "book2" is only declared, so their values will need to be set later on through a function.
+
+```
+struct Book {
+    string name;
+    string writter;
+    uint id;
+}
+
+Book book1 = Book("Mastering Etheruem", "Aantonop", 1001);
+
+Book book2;
+```
+
 ### Mappging Types
+
+Mapping types is a reference type that stores the data in a key-value pair where a key can me any value types. Mapping are declared using the syntax `mapping(keyType => ValueType). You can query a value associated to some key using the syntax `<mapping>[<key>]`.
+
+In this example, we define a public mapping called "balances", with an `address` as the key type and a `uint` as the value type.
+
+```
+mapping(address => uint) public balances;
+
+balances[msg.sender];
+```
+
+## State Variables
+
+A variable is a placeholder for data which can be manipulated at runtime. Variables allow users to retrieve and chage the stored information. State variables are stored in the contract storage area. They are stored in a compact way such that multiple values sometimes use the same storage slot.
+
+Except for dynamically-sized arrays and mappings, data is stored contiguously item after item starting with the first state variable, and for each variable, a size in bytes is determined according to its type.
+
+Dynamically-sized arrays an mappings, due to their unpredictable size ¡, cannot be stored "in between" the state variables preceding and following them. Instead, they are considered to occupy  only 32 bytes  and the elements they contain are stored starting at a different storage slot that is computed using a Keccak-256 hash.
+
+There are cases where you will need to explicitly declare is a variable is stored in storage or in memory using the keywords `storage` and `memory`, namely when dealing with structs and arrays within functions.
 
 ## Functions
 
