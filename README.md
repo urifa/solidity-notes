@@ -234,7 +234,7 @@ Book book1 = Book("Mastering Etheruem", "Aantonop", 1001);
 Book book2;
 ```
 
-### Mappging Types
+#### Mappgings
 
 Mapping types is a reference type that stores the data in a key-value pair where a key can me any value types. Mapping are declared using the syntax `mapping(keyType => ValueType). You can query a value associated to some key using the syntax `<mapping>[<key>]`.
 
@@ -252,38 +252,92 @@ A variable is a placeholder for data which can be manipulated at runtime. Variab
 
 Except for dynamically-sized arrays and mappings, data is stored contiguously item after item starting with the first state variable, and for each variable, a size in bytes is determined according to its type.
 
-Dynamically-sized arrays an mappings, due to their unpredictable size ¡, cannot be stored "in between" the state variables preceding and following them. Instead, they are considered to occupy  only 32 bytes  and the elements they contain are stored starting at a different storage slot that is computed using a Keccak-256 hash.
+Dynamically-sized arrays an mappings, due to their unpredictable size, cannot be stored "in between" the state variables preceding and following them. Instead, they are considered to occupy  only 32 bytes  and the elements they contain are stored starting at a different storage slot that is computed using a Keccak-256 hash.
 
 There are cases where you will need to explicitly declare is a variable is stored in storage or in memory using the keywords `storage` and `memory`, namely when dealing with structs and arrays within functions.
 
+### State Variable Visibility
+
+State variables can be declared as **public**, **iternal** or **private**.
+
+- **Public state variables** are declared using the `public` keyword after the data type. They are similar to internal ones, but differ in that the compiler automatically generates getter functions for them, which allows other contracts to read their values. When used within the same contract, the external access (e.g. `this.x`) invokes the getter, while internal access (e.g. `x`) gets the variable value directly from storage. Setter functions are not generated so other contracts cannot directly modify their values.
+- **Internal state variables** are declared using the `internal` keyword after the data type, although this is not needed, as it is the default visibility level for state variables. They can only be accessed from within the contract they are defined in and in derived contracts. They cannot be accessed externally.
+- **Private state variables** are declared using the `private` keyword after the data type. They are like innternal ones but they are not visible in derived contracts.
+
 ## Functions
 
-Functions consist a data type for themselves.
+Functions consist a data type for themselves. They are declared using the keyword `function`, followed by the name of the function.
+
+In this example, we declare a function called "func":
+
+```
+function func() {
+    // ...
+}
+```
 
 ### Function Parameters
 
-Functions take typed parameters as input
+Functions take typed parameters as input. They are declared the same way as variables, and the name of the unused parameters can be omitted. Function parameters can be used as any other local variable and they can also be assigned to.
 
-### Visibility Specifier
+In this example, we declare a function called "func" passing two parameters to it, specifying the data type for each parameter:
+
+```
+function func(uint a, uint b) {
+    // ...
+}
+```
+
+### Function Visibility
 
 Solidity knows two kinds of function calls: external ones that do create an actual EVM message call, and internal ones that do not. Furthermore, internal functions can be made inaccessible to derived contracts. This gives rise to four types of visibility functions. 
 
-- External functions, declared using the `external` keyword, are part of the contract interface, which means they can be called form other contracts and via transactions, but cannot be called internally.
-- Public functions, declared using the `public` keyword, are part of the contract interface, and be either be called internally or via message calls.
-- Internal functions, declared using the `internal` keyword, can only be accessed from within the current contract or contracts deriving from it, but cannot be accessed externally. They are not exposed to the outside through the contract's ABI.
-- Private functions, declared using the `private` keyword, are like internal ones, but they are not visible in derived contracts.
+- **External functions** are declared using the `external` keyword. They are part of the contract interface, which means they can be called form other contracts and via transactions, but cannot be called internally.
+- **Public functions** are declared using the `public` keyword. They are part of the contract interface, and can be either be called internally or via message calls.
+- **Internal functions** are declared using the `internal` keyword. They can only be accessed from within the current contract or contracts deriving from it, but cannot be accessed externally. They are not exposed to the outside through the contract's ABI.
+- **Private functions** are declared using the `private` keyword. They are like internal ones, but they are not visible in derived contracts.
 
-The visibility specifier is given after the parameter list.
+The visibility specifier on a function is given after the parameter list and before the return list.
+
+In this example, we declare a function called "func" passing two parameters to it, and defining it as a public function:
+
+```
+function func(uint a, uint b) public {
+    // ...
+}
+```
 
 ### State Mutability
 
-Functio
+Functions can also de defined as view functions or pure functions, to indicate if they cannot modify the state of the blockchain.
 
-- View functions, declared using the `view` keyword, enforces the state in the blockchain to be unmodified as part of the EVM execution. Getter methods are automatically marked as `view`.
-- Pure functions, declared using the `pure` keyword, 
+- View functions are declared using the `view` keyword. They promise not to modify the state of the blockchain. Getter methods are automatically marked as `view`.
+- Pure functions are declared using the `pure` keyword. They promise not to read from or modify the state of the blockchain. It should be possible to evaluate a pure function at compile-time given only its inputs and `msg.data`, but without any knowledge of the current blockchain state.
 
-### Return Variable
+The `view` and `pure` keywords are usually given after the parameter list and visibility specifier, and before the return list.
 
+In this example, we declare same function of the previous example, but adding the `pure` keyword to declare it as a pure function:
+
+```
+function func(uint a, uint b) public pure {
+    // ...
+}
+```
+
+### Return Variables
+
+Function return variables are declared with the same syntax of function parameters, and after the `returns` keyword, although the names of return variables can be omitted.
+
+Return variables can be used as any other local variable and they are initialized with their default value and have that value until they are (re-)assigned.
+
+In this example, we declare the same function of the previous example, but adding a return variable:
+
+```
+function func(uint a, uint b) public pure returns (uint) {
+    // ...
+    return a + b;
+}
+```
 
 ## Events
 
