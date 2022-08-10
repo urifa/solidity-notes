@@ -2,47 +2,59 @@
 
 Quick Git reference with most used commands.
 
-## Smart Contracts
-
-A smart contract is the fundamental building block of Ethereum applications. A contract in the sense of Solidity is a collection of code (its functions) and data (its state) that resides at a specific address on the Ethereum blockchain.
-
 ## Ethereum Virtual Machine (EVM)
 
 The Ethereum Virtual Machine or EVP is the runtime environment for smart contracts in Ethereum.  It is completely isolated, which means that code running inside the EVM has no access to network, filesystems or other processes.
 
 There are two kinds of accounts in Ethereum which share the same address space: **external accounts**, which are controlled by public-private key pairs (i.e. humand), and **contract accounts**, which are controlled by the code stored together wit the account.
 
-The address of an external account is determined from the public key while the address of a contract is determined at the time the contract is created (it is derived from the creator address and the number of transactions sent from that address).
+The address of an external account is determined from the public key while the address of a contract is determined at the time the contract is created and deployed (it is derived from the contract creator address and the number of transactions sent from that address).
 
 Both account types are treated equally by the EVM, and every one of them has a store mapping 256-bit words to 256-bit words called **storage**.
 
-## Data Location
+### Data Area Location
 
 The EVM has three areas where it can store data: **storage**, **memory** and **stack**.
 
-### Storage
+#### Storage
 
 Each account has a data area called **storage**, which is persistent between function calls and transactions. This is the location where state variables are stored by default, and the lifetime is limited to the lifetime of the contract. You can modify its value, but their location is permanent, and every change is registered on the blockchain.
 
 Storage is a key-vakue store that maps 256-bit words to 256-bit words. It is not possible to enumerate storage from within a contract, it is comparatively costly to read and even more to initialise and modify.
 
-### Memory
+#### Memory
 
 The second data area is called **memory**, and is is a temporary location for variables declared inside a function, and their lifetime is limited to an external function call. You cannot access variables stored in memory from anywhere else other than from inside the function in which has beed declared.
 
 Memory is linear and can be addressed at byte level, but reads are limited to a width of 256 bits.
 
-### Stack
+#### Stack
 
 The EVM is not a register machine but a stack machine, so all computations are performed  on a data area called the **stack**. Access to the stack is limited to the top end in the following way: it is possible to copy one of the topmost 16 elements to the top of the stack or swap the topmost element with one of the 16 elements below it.
 
 The stack has a maximum size of 1024 elements and contains 256 bits. It is possible to move stack elements to storage or memory in order to get deeper sccess to the stack, but it is not possible to just access arbitrary elements deeper in the stack without first removing the top of the stack.
 
-### Calldata
+#### Calldata
 
 Contracts can call other contracts or send Ether to noncontract accounts by the means of message calls. Messahe calls are similar to transactions, in that they have a source, a target, data payload, Ether, gas, and return data. In fact, every transaction consists of a top-level message call which in turn can create further message calls. A contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
 
 The called contract (which can be the same as the caller) will receive a freshly cleared instance of memory and has access to the call payload - which will be provided in a separate area called the **calldata**. Calldata is a non-modifianble and non-persistent area where function arguments are stored. It acts like memory, in terms of its dependance on the function execution.
+
+## Smart Contracts
+
+A smart contract is the fundamental building block of Ethereum applications. A contract in the sense of Solidity is a collection of code (its functions) and data (its state) that resides at a specific address on the Ethereum blockchain.
+
+Deploying a contracts is similar to signing a transaction, and the address who deploys the contracts will spend some amount of Gas during its creation, decreasing their Ether balance as well.
+
+Every smart contract has also an address, that is determined during its deployment and derives from the contract creator address and the number of transactions sent from that address. Every contract re-deployment results in a new contract address.
+
+The contract address will be visible on the Blockchain (or the environment in which the contract has been deployed, in case of a test environment), and its code will be inmutable, just like a normal transaction.
+
+If the contract source code needs to be modified, a new contract deployment will be needed, so this will result in a different contract address (the old contracts will continue existing on its own contract address).
+
+Contracts users also can modify the state of the blockchains while interacting with the contract. Every function inside the contract that modifies the state of the blockchain results in a new transaction on the blockchain, with a Gas cost associated.
+
+Gas consumption depends on how computationally expensive is the action performed.
 
 ## Solidity Source File Layout
 
@@ -59,30 +71,35 @@ In this case, you are using the MIT license.
 
 A Solidity source code should start with the `pragma` keyword, which is used to enable certain compiler features or checks. Tipically is used as a declaration of the version of the Solidity compiler this code should use.
 
-The version pragma is used as follows:
+These are some examples of how version pragma is used.
+
+In this example, version pragma indicates that the source file does not compile with a compiler earlier than version 0.5.2, and it does not work on a compiler starting from version 0.6.0.
 
 ```
 pragma solidity ^0.5.2;
 ```
-This indicates that the source file does not compile with a compiler earlier than version 0.5.2, and it does not work on a compiler starting from version 0.6.0.
+
+This version pragma indicates that the source file will compile with any compiler version in the range of 0.5.0 to 0.6.0 (exclusive).
 
 ```
 pragma solidity >=0.5.0 <0.6.0;
 ```
-This indicates that the source file will compile with any compiler version in the range of 0.5.0 to 0.6.0 (exclusive).
 
 ### Contract Declaration
 
-Solidity's code is encapsulated in `contract`. Contracts in Solidity are similar to classes in object-oriented languages. Each contract can contain declarations of State Variables, Functions, Function Modifiers, Events, Errors, Struct Types and Enum Types.
-
-Contracts declaration follows this pattern:
+Solidity's code is encapsulated in `contract`. Contracts declaration follows this pattern:
 
 ```
-contract Animal {
+contract <contract-name> {
     // ...
 }
 ```
-Declare a contract named "Animal".
+
+## Contracts
+
+Contracts in Solidity are similar to classes in object-oriented languages. Each contract can contain declarations of State Variables, Functions, Function Modifiers, Events, Errors, Struct Types and Enum Types.
+
+### Contract Inheritance
 
 Contracts can inherit from other contracts. This means that when you compile and deploy the current contract, it will have access to all parent contract functions. The scope of inheritance in Solidity is limited to `public` and `internal` modifiers only.
 
@@ -96,6 +113,24 @@ contract Cat is Animal {
 }
 ```
 Declare a contract named "Cat" which inherits from the contract "Animal".
+
+## State Variables
+
+A variable is a placeholder for data which can be manipulated at runtime. Variables allow users to retrieve and chage the stored information. State variables are stored in the contract storage area. They are stored in a compact way such that multiple values sometimes use the same storage slot.
+
+Except for dynamically-sized arrays and mappings, data is stored contiguously item after item starting with the first state variable, and for each variable, a size in bytes is determined according to its type.
+
+Dynamically-sized arrays an mappings, due to their unpredictable size, cannot be stored "in between" the state variables preceding and following them. Instead, they are considered to occupy  only 32 bytes  and the elements they contain are stored starting at a different storage slot that is computed using a Keccak-256 hash.
+
+There are cases where you will need to explicitly declare is a variable is stored in storage or in memory using the keywords `storage` and `memory`, namely when dealing with structs and arrays within functions.
+
+### State Variable Visibility
+
+State variables can be declared as **public**, **internal** or **private**.
+
+- **Public state variables** are declared using the `public` keyword after the data type. They are similar to internal ones, but differ in that the compiler automatically generates getter functions for them, which allows other contracts to read their values. When used within the same contract, the external access (e.g. `this.x`) invokes the getter, while internal access (e.g. `x`) gets the variable value directly from storage. Setter functions are not generated so other contracts cannot directly modify their values.
+- **Internal state variables** are declared using the `internal` keyword after the data type, although this is not needed, as it is the default visibility level for state variables. They can only be accessed from within the contract they are defined in and in derived contracts. They cannot be accessed externally.
+- **Private state variables** are declared using the `private` keyword after the data type. They are like innternal ones but they are not visible in derived contracts.
 
 ## Data Types
 
@@ -193,9 +228,11 @@ Data locations are not only relevant for persistency of data, but also for the s
 
 #### Arrays
 
-Array data types can have a compile-time fixed size, or a dynamic size. Array elements can be of any type, including mapping or struct. Arrays are declared using the data type of their members and followed by squared brackets.
+Arrays are data structures that holds a list of other types. They are declared using the data type of the elements with brackets followed by the name of the array: `<element_data_type>[] <array_name>`. 
 
-In this example we declare two arrays: a fixed size array called "arr1", which we assign a value to it, and a dynamic size array called "arr2":
+Arrays can have a compile-time fixed size, or a dynamic size. Array elements can be of any type, including mapping or struct. Arrays are declared using the data type of their members and followed by squared brackets.
+
+In this example we declare two arrays: a fixed size array called "arr1", which we assign a value to it, and a dynamic size array called "arr2", which is empty:
 
 ```
 uint[3] public arr1 = [1, 2, 3];
@@ -216,11 +253,17 @@ arr2.pop();  // Remove an element from the end of the array
 
 #### Structs
 
-Struct data types provides a way of grouping together related data. Structs are declared using the `struct` keyword, followed by the name of the struct, and for accessing any element of the struct you can use the dot operator.
+Struct data types provides a way of grouping together related data. Structs are declared using the `struct` keyword, followed by the name of the struct, following this syntax: `struct <StructName> {}`.
+
+A struct can contain different variables of parameters, which can be declared as other variable, indicating its data type followed by the name of the paramenter. All struct parameters are indexed.
 
 In all functions, a struct type is assigned to a local variable with data location `storage`. This does not copy the struct but only stores a reference so that assignments to members of the local variable actually write to the state.
 
-In this example we declare a struct names "Book", which contains three properties and defines its own struct type. Then we create two variables, "book1" and "book2" of the type "Book", that will contian instances of this previous defined struct. The variable "book1" is initialized, and the variable "book2" is only declared, so their values will need to be set later on through a function.
+Once you declare an struct, it will result on a type on its own, so you can declare a variable containing an instance of that struct, indicating the name of the struct as the data type for the variable.
+
+You can query for the different variables of a struct instance using the dot notation: `<struct_instance>.<parameter_name>`
+
+In this example we declare a struct named "Book", which contains three properties and defines its own struct type. Then, we create two variables, "book1" and "book2" of the type "Book". This variables will contian different instances of this previous defined struct. The variable "book1" is initialized, and the variable "book2" is only declared, so their values will need to be set later on through a function.
 
 ```
 struct Book {
@@ -245,24 +288,6 @@ mapping(address => uint) public balances;
 
 balances[msg.sender];
 ```
-
-## State Variables
-
-A variable is a placeholder for data which can be manipulated at runtime. Variables allow users to retrieve and chage the stored information. State variables are stored in the contract storage area. They are stored in a compact way such that multiple values sometimes use the same storage slot.
-
-Except for dynamically-sized arrays and mappings, data is stored contiguously item after item starting with the first state variable, and for each variable, a size in bytes is determined according to its type.
-
-Dynamically-sized arrays an mappings, due to their unpredictable size, cannot be stored "in between" the state variables preceding and following them. Instead, they are considered to occupy  only 32 bytes  and the elements they contain are stored starting at a different storage slot that is computed using a Keccak-256 hash.
-
-There are cases where you will need to explicitly declare is a variable is stored in storage or in memory using the keywords `storage` and `memory`, namely when dealing with structs and arrays within functions.
-
-### State Variable Visibility
-
-State variables can be declared as **public**, **iternal** or **private**.
-
-- **Public state variables** are declared using the `public` keyword after the data type. They are similar to internal ones, but differ in that the compiler automatically generates getter functions for them, which allows other contracts to read their values. When used within the same contract, the external access (e.g. `this.x`) invokes the getter, while internal access (e.g. `x`) gets the variable value directly from storage. Setter functions are not generated so other contracts cannot directly modify their values.
-- **Internal state variables** are declared using the `internal` keyword after the data type, although this is not needed, as it is the default visibility level for state variables. They can only be accessed from within the contract they are defined in and in derived contracts. They cannot be accessed externally.
-- **Private state variables** are declared using the `private` keyword after the data type. They are like innternal ones but they are not visible in derived contracts.
 
 ## Functions
 
@@ -309,9 +334,9 @@ function func(uint a, uint b) public {
 
 ### State Mutability
 
-Functions can also de defined as view functions or pure functions, to indicate if they cannot modify the state of the blockchain.
+Functions can also de defined as view functions or pure functions. View and pure functions don't modify the state of the blockchain. When called alone, they don't result in a new transaction on the blockchain, so there is no Gas associated.
 
-- View functions are declared using the `view` keyword. They promise not to modify the state of the blockchain. Getter methods are automatically marked as `view`.
+- View functions are declared using the `view` keyword. They promise not to modify the state of the blockchain. When called, Getter methods are automatically marked as `view`.
 - Pure functions are declared using the `pure` keyword. They promise not to read from or modify the state of the blockchain. It should be possible to evaluate a pure function at compile-time given only its inputs and `msg.data`, but without any knowledge of the current blockchain state.
 
 The `view` and `pure` keywords are usually given after the parameter list and visibility specifier, and before the return list.
@@ -338,6 +363,13 @@ function func(uint a, uint b) public pure returns (uint) {
     return a + b;
 }
 ```
+
+### Function Local Variables
+
+A function creates its own scope, meaning that variables declared inside a function are only visible in the context of that function. This variable cannot be called from outside this function.
+
+
+
 
 ## Events
 
