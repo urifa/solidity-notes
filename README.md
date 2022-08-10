@@ -14,7 +14,7 @@ Both account types are treated equally by the EVM, and every one of them has a s
 
 ### Data Area Location
 
-The EVM has three areas where it can store data: **storage**, **memory** and **stack**.
+The EVM can access and store data in six areas: **storage**, **memory**, **calldata**, **stack**, **code** and **logs**, although when you declare a variable, only can only specify three of these areas:  storage, memory and calldata.
 
 #### Storage
 
@@ -24,21 +24,23 @@ Storage is a key-vakue store that maps 256-bit words to 256-bit words. It is not
 
 #### Memory
 
-The second data area is called **memory**, and is is a temporary location for variables declared inside a function, and their lifetime is limited to an external function call. You cannot access variables stored in memory from anywhere else other than from inside the function in which has beed declared.
+Memory is is a temporary location for variables declared inside a function, and their lifetime is limited to an external function call. You cannot access variables stored in memory from anywhere else other than from inside the function in which has beed declared.
 
 Memory is linear and can be addressed at byte level, but reads are limited to a width of 256 bits.
+
+#### Calldata
+
+Calldata is a non-modifianble and non-persistent area where function arguments are stored. It acts like memory, in terms of its dependance on the function execution, but, as opposed to memory, data stored in calldata cannot be modifyed.
+
+Contracts can call other contracts or send Ether to noncontract accounts by the means of message calls. Messahe calls are similar to transactions, in that they have a source, a target, data payload, Ether, gas, and return data. In fact, every transaction consists of a top-level message call which in turn can create further message calls. A contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
+
+The called contract (which can be the same as the caller) will receive a freshly cleared instance of memory and has access to the call payload - which will be provided in a separate area called the **calldata**.
 
 #### Stack
 
 The EVM is not a register machine but a stack machine, so all computations are performed  on a data area called the **stack**. Access to the stack is limited to the top end in the following way: it is possible to copy one of the topmost 16 elements to the top of the stack or swap the topmost element with one of the 16 elements below it.
 
 The stack has a maximum size of 1024 elements and contains 256 bits. It is possible to move stack elements to storage or memory in order to get deeper sccess to the stack, but it is not possible to just access arbitrary elements deeper in the stack without first removing the top of the stack.
-
-#### Calldata
-
-Contracts can call other contracts or send Ether to noncontract accounts by the means of message calls. Messahe calls are similar to transactions, in that they have a source, a target, data payload, Ether, gas, and return data. In fact, every transaction consists of a top-level message call which in turn can create further message calls. A contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
-
-The called contract (which can be the same as the caller) will receive a freshly cleared instance of memory and has access to the call payload - which will be provided in a separate area called the **calldata**. Calldata is a non-modifianble and non-persistent area where function arguments are stored. It acts like memory, in terms of its dependance on the function execution.
 
 ## Smart Contracts
 
@@ -142,20 +144,20 @@ Value types are called this way because variables of these types will always be 
 
 #### Booleans
 
-Boolean types are indicated by `bool` keyword, and accept only two possible values: `true` and `false`.
+Boolean types are indicated by `bool` keyword, and accept only two possible values: `true` and `false`. 
 
-These are some example for boolean declarations. You can declare the variable, and also assign it to a specific value.
+You can declare a variable with a boolean type  using this syntax: `bool <variable_name>`, and can assign it to a specific value or leave it undefined (which takes the value `false` by default). These are some examples:
 
 ```
-bool gameStart;  // Unassigned bool variables are equal to false by default
-bool gameOver= true;
+bool bool1;
+bool bool2 = true;
 ```
 
 #### Integers
 
-Integer types signed, indicated by `int` keyword, or unsigned, indicated by `uint` keyword. Integers in solidity are restricted by a certain range, and different ranges are available from `int8` or `uint8` to `int256` or `uint256`. 
+Integer types can be signed or unsigned. Signed integer types are indicated by `int` keyword, while unsigned unsigned ones are indicated by `uint` keyword. Integers in solidity are restricted by a certain range, and different ranges are available from `int8` or `uint8` to `int256` or `uint256`. 
 
-These are some examples for both signed and non-signed integer declarations. 
+You can declare a variable with an integer data type using this syntax: `int <variable_name>` for a signed one and `uint <variable_name>` for an unsigned one. You can also assign it to a specific value or leave it undefined. These are some examples: 
 
 ```
 int128 a;  // int128 ranges from -2 ** 127 to 2 ** 127 - 1 
@@ -167,23 +169,21 @@ uint e = 450;  // uint is an alias for uint256
 
 #### Address
 
-Address type is indicated by `address` or `address payable` keywords, and  holds a 20 byte value, which is the size of an Ethereum address. The difference between the two types is that `address payable` is an address you can send Ether to, while you are not supposed to send Ether to a plain `address`.
+Address types are indicated by `address` or `address payable` keywords, and hold 20 bytes values, which is the size of an Ethereum address. The difference between the two types is that `address payable` is an address you can send Ether to, while you are not supposed to send Ether to a plain `address`.
 
-These are some examples for address declarations. In the first case we declare a variable called `addr1` that holds an address type. In the second case, we declare a second variable called `addr2` that holds an address payable type, and assign a value to it.
+You can declare a variable with an address type using this syntax: `address <variable_name>` for addresses, and `address payable <variable_name>` for payable addresses. These are some examples:
 
 ```
 address addr1;  
 address payable addr2 = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c;
 ```
 
-You can use some members associated to addresses. The most important ones are `<address>.balance`, `<address payable>.transfer` and `<address payable>.send`.
-
-Here you can see some examples using address members with the two addresses declared before:
+Address types come with some members. The most important ones are `<address>.balance`, which queries the balance for the given address, `<address payable>.transfer(<amount>)` which transfers a given amount of Ether to that address, and `<address payable>.send(<amount>)`, which does the same but returning the value "false" on failure. These are some examples:
 
 ```
 addr1.balance;  // Query the balance in Wei of addr1
-addr2.transfer(uint256 amount);  // Send given amount of Wei to addr2. Forwards 2300 gas stipend
-addr2.send(uint256 amount);  // Send given amount og Wei to addr2 and returns `false` on failure. Forwards 2300 gas stipend
+addr2.transfer(uint256 1000);  // Send 1000 Wei to addr2. Forwards 2300 gas stipend
+addr2.send(uint256 1000);  // Send 1000 Wei to addr2. Forwards 2300 gas stipend
 ```
 
 #### Contract Types
@@ -218,52 +218,42 @@ function eat(uint) public view returns (uint256) {
 
 ### Reference Types
 
-Values of reference type can be modified through multiple different names, so when using a reference type, you need to explicitly provide the data location where the type is stored: `storage`, `memory` or `calldata`.
-
-Data locations are not only relevant for persistency of data, but also for the semantics of assignments. 
+Values of reference type can be modified through multiple different names, so when using a reference type, you need to explicitly provide the data location where the type is stored: `storage`, `memory` or `calldata`. It is not only relevant for persistency of data, but also for the semantics of assignments. 
 
 - Assignments between `storage` and `memory` always create an independent copy.
 - Assignments from `memory` to `memory` only create references, so changes to one memory variable are also visible in all other memory variables referring to the same data.
 - Assignments from `storage` to a local storage variable also only assign a reference.
 
+Reference type values in Solidity are arrays, structs and mappings. The data location needs to be specified when passing one of these data types as parameters in functions. Data location, in fact, can only be specified for these data types.
+
 #### Arrays
 
-Arrays are data structures that holds a list of other types. They are declared using the data type of the elements with brackets followed by the name of the array: `<element_data_type>[] <array_name>`. 
+Arrays are data structures that holds a list of other types. Arrays can have a compile-time fixed size, or a dynamic size. Array elements can be of any type, including mapping or struct. 
 
-Arrays can have a compile-time fixed size, or a dynamic size. Array elements can be of any type, including mapping or struct. Arrays are declared using the data type of their members and followed by squared brackets.
-
-In this example we declare two arrays: a fixed size array called "arr1", which we assign a value to it, and a dynamic size array called "arr2", which is empty:
+You can declare a variable with an array data type indicating the data type of their elements with brackets followed by the name of the array. The syntax is the following: `<element_data_type>[] <variable_name>` for fixed size arrays and `<element_data_type>[<n>] <variable_name>` for dynamic arrays. These are some examples:
 
 ```
 uint[3] public arr1 = [1, 2, 3];
 uint[] public arr2;
 ```
 
-Memory arrays with dynamic length can be created using the `new` operator. As opposed to storage arrays, it is not possible to resize memory arrays  (e.g. the `.push` member function is not available).
+Memory arrays with dynamic length can be created using the `new` operator. As opposed to storage arrays, it is not possible to resize memory arrays.
 
-Arrays accept some members. The most important ones are `<array>.length`, `<array>.push()` and `<array>.pop()`. Both `<array>.push()` and `<array>.pop()` are only available for dynamic storage arrays and has a gas cost.
-
-Here you can see some examples using these members with the two arrays declared before:
+Array data types come with some members. The most important ones are `<array>.length`, which prints the length of the given array, `<array>.push(<el>)` which appends a given element at the end of the array, and `<array>.pop()`, which removes an element from the end of the array. These are some examples:
 
 ```
 arr1.length;  // Query the length of arr1
-arr2.push(x);  // Append a given element at the end of arr2
+arr2.push(1);  // Append the value 1 at the end of arr2
 arr2.pop();  // Remove an element from the end of the array
 ```
 
+Both `<array>.push(<el>)` and `<array>.pop()` are only available for dynamic storage arrays and have a gas cost.
+
 #### Structs
 
-Struct data types provides a way of grouping together related data. Structs are declared using the `struct` keyword, followed by the name of the struct, following this syntax: `struct <StructName> {}`.
+Struct data types provides a way of grouping together related data. In all functions, a struct type is assigned to a local variable with data location `storage`. This does not copy the struct but only stores a reference so that assignments to members of the local variable actually write to the state.
 
-A struct can contain different variables of parameters, which can be declared as other variable, indicating its data type followed by the name of the paramenter. All struct parameters are indexed.
-
-In all functions, a struct type is assigned to a local variable with data location `storage`. This does not copy the struct but only stores a reference so that assignments to members of the local variable actually write to the state.
-
-Once you declare an struct, it will result on a type on its own, so you can declare a variable containing an instance of that struct, indicating the name of the struct as the data type for the variable.
-
-You can query for the different variables of a struct instance using the dot notation: `<struct_instance>.<parameter_name>`
-
-In this example we declare a struct named "Book", which contains three properties and defines its own struct type. Then, we create two variables, "book1" and "book2" of the type "Book". This variables will contian different instances of this previous defined struct. The variable "book1" is initialized, and the variable "book2" is only declared, so their values will need to be set later on through a function.
+Structs are declared using the `struct` keyword, followed by the name of the struct. The syntax is the following: `struct <StructName> { // Parameters}`. Struct parameters are declared as other variables. This is an example:
 
 ```
 struct Book {
@@ -271,22 +261,35 @@ struct Book {
     string writter;
     uint id;
 }
+```
 
+Once you declare an struct, it will result on a type on its own, so you can declare variables containing instance of that struct, indicating the name of the struct as the data type for the variable. This is an example:
+
+```
 Book book1 = Book("Mastering Etheruem", "Aantonop", 1001);
-
 Book book2;
+```
+
+You can query for the different variables of a struct instance using the dot notation: `<variable_name>.<parameter_name>`. This is an example:
+
+```
+book1.name;
 ```
 
 #### Mappgings
 
-Mapping types is a reference type that stores the data in a key-value pair where a key can me any value types. Mapping are declared using the syntax `mapping(keyType => ValueType). You can query a value associated to some key using the syntax `<mapping>[<key>]`.
+Mapping type is a reference type that stores the data in a key-value pair where a key, which can be of any data type, is mapped to a single value. 
 
-In this example, we define a public mapping called "balances", with an `address` as the key type and a `uint` as the value type.
+Mapping are declared using the syntax `mapping(keyType => ValueType) <mapping_name>`. This is an example:
 
 ```
-mapping(address => uint) public balances;
+mapping(address => uint) public balances;  // Declare a mapping called balances to map an address to a certain amount
+```
 
-balances[msg.sender];
+You can query a value associated to some key in a mapping using the syntax `<mapping_name>[<key>]`. This is an example:
+
+```
+balances[msg.sender] = 1000;  // Set the value 1000 to the address "msg.sender" in balances mapping
 ```
 
 ## Functions
