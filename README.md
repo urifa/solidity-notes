@@ -4,9 +4,11 @@ Quick Git reference with most used commands.
 
 ## Ethereum Virtual Machine (EVM)
 
-The Ethereum Virtual Machine or EVP is the runtime environment for smart contracts in Ethereum.  It is completely isolated, which means that code running inside the EVM has no access to network, filesystems or other processes.
+The Ethereum Virtual Machine or EVM is the runtime environment for smart contracts in Ethereum.  It is completely isolated, which means that code running inside the EVM has no access to network, filesystems or other processes.
 
-There are two kinds of accounts in Ethereum which share the same address space: **external accounts**, which are controlled by public-private key pairs (i.e. humand), and **contract accounts**, which are controlled by the code stored together wit the account.
+EVM is an standard for how to deploy smart contracts in Ethereum' like blockchains. Some examples of EVM compatible blockchains are Avalanche, Fantom and Polygon. This means that you can write your solidity code and deploy it to these blockchains.
+
+There are two kinds of accounts in Ethereum which share the same address space: **external accounts**, which are controlled by public-private key pairs (i.e. humand), and **contract accounts**, which are controlled by the code stored together with the account.
 
 The address of an external account is determined from the public key while the address of a contract is determined at the time the contract is created and deployed (it is derived from the contract creator address and the number of transactions sent from that address).
 
@@ -275,7 +277,7 @@ balances[msg.sender] = 1000;  // Set the value 1000 to the address "msg.sender" 
 
 ## Contracts
 
-Contracts in Solidity are similar to classes in object-oriented languages, and they conist a data type for themselves. Each contract can contain declarations of State Variables, Functions, Function Modifiers, Events, Errors, Struct Types and Enum Types.
+Contracts in Solidity are similar to classes in object-oriented languages, and they consist a data type for themselves. Each contract can contain declarations of State Variables, Functions, Function Modifiers, Events, Errors, Struct Types and Enum Types.
 
 Contracts are declared using the keyword `contract`, followed by the name of the contract. The syntax is the following:
 
@@ -289,7 +291,7 @@ Contracts are composable, meaning they can interact with each other.
 
 ### Import Contract
 
-When you want a contract to interact with another contracts, the current contract needs to know the source code of the contract to interact with. To do this, you can have coth contracts on the same file, or import one contract' file into the other. 
+When you want a contract to interact with another contracts, or to inherit from another contract, the current contract needs to know the source code of the contract to interact with, or to inherit from. To do this, you can have coth contracts on the same file, or import one contract' file into the other. 
 
 The import statement is usually added after the pragma version, and has the following syntax:
 
@@ -299,24 +301,30 @@ import "<contract1-file-path>
 
 Importing the path of one contracts' file is like copying their source code into the current contract, so makes the same effect of having both contracts o the same file.
 
-### Contract Interaction
+### Deploy Contract from another Contract
 
-You can create a function inside a contract that actually deploys another contract, and then interact with it.
+You can create a function inside a contract that actually deploys another contract, and then interact with it. To do that, you can use the keyword `new` followed by the name of the contract you want to deploy. The syntax is the following:
 
-In this example, we have a first contract, named "StorageFactory" that will be used to deploy another contract, named "Storage", so it will be able to interact with it.
+```
+new <ContractName>()
+```
 
-Storage is a contract that has two functions, one to store a number, and another to retrieve that number.
+In this example, we have a first contract, named "StorageFactory" that will be used to deploy another contract, named "SimpleStorage", so it will be able to interact with it.
 
-Storage code:
+SimpleStorage is a contract that has two functions, one to store a number, and another to retrieve that number.
+
+SimpleStorage contract code:
 
 ```
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.8;
 
-contract Storage {
+contract SimpleStorage {
+
     uint256 num;
     
+    // Declared as a virtual function to be overridable by a child contract
     function store(uint256 _num) public virtual {
         num = _num;
     }
@@ -327,69 +335,81 @@ contract Storage {
 }
 ```
 
-StorageFactory is a contract that has a function that deploys the Storage contract, and keeps track of every Storage contract being deployed on an array. Then, it has two other functions that pick one of the Storage contracts being deployed from the array, and call functions store() and retrieve() from it. 
+StorageFactory is a contract that has a function that deploys the SimpleStorage contract, and keeps track of every SimpleStorage contract being deployed on an array. Then, it has two other functions that pick one of the SimpleStorage contracts being deployed from the array, and call functions store() and retrieve() from it. 
 
-StorageFactory code:
+StorageFactory contract code:
 
 ```
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.8;
 
-import "./Storage";
+import "./SimpleStorage";
 
 contract StorageFactory {
 
     // Array of ContractStorge contract type objects 
-    Storage[] public storageArray;
+    SimpleStorage[] public simpleStorageArray;
     
-    // Function to deploy ContractStorage contract and add to the array
-    function createStorage() public {
-        // Deploy Storage contract and save it to state variable storage
-        Storage storage = new Storage();
+    // Function to deploy SimpleStorage contract and add to the array
+    function createSimpleStorage() public {
+        // Deploy SimpleStorage contract and save it to state variable storage
+        SimpleStorage simpleStorage = new SimpleStorage();
         
-        // Add the contract to storageArray
-        storageArray.push(storage);
+        // Add the contract to simpleStorageArray
+        simpleStorageArray.push(simpleStorage);
         
-    // Function tha calls function store() from Storage contract
-    function sfStore(uint256 _storageInndex, uint256 _storageNum) public {
+    // Function tha calls function store() from SimpleStorage contract
+    function sfStore(uint256 _simpleStorageIndex, uint256 _simpleStorageNum) public {
+    
         // Select Storage contract from the array of Storage contract objects 
-        Storage storage = storageArray[_storageIndex];
+        SimpleStorage simpleStorage = simpleStorageArray[_simpleStorageIndex];
         
-        // Call function store() from Storage contract object
-        storage.store(_storageNum);
+        // Call function store() from SimpleStorage contract object
+        simpleStorage.store(_simpleStorageNum);
     }
     
     // Function that calls function retrieve() from Storge contract
-    function sfGet(uint256 _storageIndex) public view returns(uint256) {
+    function sfGet(uint256 _simpleStorageIndex) public view returns(uint256) {
         // Select Storage contract from the array of Storage contract objects
-        Storage storage = storageArray[_storageIndex];
+        SimpleStorage simpleStorage = simpleStorageArray[_simpleStorageIndex];
         
-        // Call function retrieve() from Storage contract object
-        return storage.retrieve();
+        // Call function retrieve() from SimpleStorage contract object
+        return simpleStorage.retrieve();
     }
 }
 ```
-
-
-
-
-
 
 ### Contract Inheritance
 
 Contracts can inherit from other contracts. This means that when you compile and deploy the current contract, it will have access to all parent contract functions. The scope of inheritance in Solidity is limited to `public` and `internal` modifiers only.
 
-Functions from a parent contract that are going to be overridden by a child contract must be declared as `virtual`, and functionns that are going to override a parent function must use the leyword `override`.
-
-Contract inheritance is indicateed by `is` keyword, as you can see in the following example:
+Contract inheritance is indicated during the contract declaration, adding the `is` keyword after the current contract, followed by the name of the contract it inherits from. This is the syntax:
 
 ```
-contract Cat is Animal {
-    // ...
+contract <ChildContractName> is <ContractNameParent> {
+    //...
 }
 ```
-Declare a contract named "Cat" which inherits from the contract "Animal".
+
+From the child contract, you have access to all parent contract functions, in addition to new functions created directly on the child contract. Furthermore, it is also possible to override some functions from the parent contract. In this case, functions that are going to be overridden by a child contract must be declared as `virtual` in the parent contract, and functions that are going to override a parent function must use the leyword `override`.
+
+In this example, we add another contract named "ExtraStorage" that inherits from the "SimpleStorage" contract of the previous example. ExtraStorageContract has function named store() that overrides the function store() from the SimpleStorage contract.
+
+ExtraStorage contract code:
+
+```
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.8;
+
+contract ExtraStorage is SimpleStorage {
+    
+    function store(uint256 _num) public override {
+        num = _num + 5;
+    }
+}
+```
 
 
 
