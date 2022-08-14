@@ -143,6 +143,12 @@ address addr1;
 address payable addr2 = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c;
 ```
 
+Address types can be explicitly converted to and from a contract type. To convert a contract instance to its corresponding contract address you can use the following syntax: `address(<ContractName>)`. This is an example:
+
+```
+address addr3 = address(this)  // Address of the current contract instance;
+```
+
 Address types come with some members. The most important ones are `<address>.balance`, which queries the balance for the given address, `<address payable>.transfer(<amount>)` which transfers a given amount of Ether to that address, and `<address payable>.send(<amount>)`, which does the same but returning the value "false" on failure. These are some examples:
 
 ```
@@ -153,14 +159,26 @@ addr2.send(uint256 1000);  // Send 1000 Wei to addr2. Forwards 2300 gas stipend
 
 #### Contract Types
 
-Every contract defines its own type. You can implicitly convert contracts to contracts they inherit from. Contracts can be explicitly converted to and from the `address` type.
+Every contract defines its own type. You can implicitly convert contracts to contracts they inherit from.
 
-In this example, we use the contract "Animal" declared before, to declare a local variable of this contract type named "animal":
+Contracts are declared using the `contract` keyword, followed by the name of the contract. The syntax is the following: `contract <ContractName> { // Code}`. Example:
 
 ```
-Animal animal {
-    // ....
+contract ContractTest {
+    uint a;
 }
+```
+
+Once you declare a contract, it will result on a type on its own, so you can declare a variable containing an instamce of that contract, indicating the name of the contract as the data type for the variable. Example:
+
+```
+ContractTest CT;
+```
+
+Contract types can be explicitly converted to and from the address type. To convert an address to its corresponding contract instance you can use the following syntax: `<ContractName>(<ContractName Address>)`. Note that the address passed in should correspond to a specific instance of the contract. This is an example, assuming we have deployed ContractTest, and there is an instance of ContractTest in address 0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99.
+
+```
+ContractTest CT = ContractTest(0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99);
 ```
 
 The members of contract types are the external functions of the contract including any state variable marked as `public`.
@@ -241,11 +259,11 @@ You can query for the different variables of a struct instance using the dot not
 book1.name;
 ```
 
-#### Mappgings
+#### Mappings
 
 Mapping type is a reference type that stores the data in a key-value pair where a key, which can be of any data type, is mapped to a single value. 
 
-Mapping are declared using the syntax `mapping(keyType => ValueType) <mapping_name>`. This is an example:
+Mappings are declared using the syntax `mapping(keyType => ValueType) <mapping_name>`. This is an example:
 
 ```
 mapping(address => uint) public balances;  // Declare a mapping called balances to map an address to a certain amount
@@ -332,7 +350,7 @@ revert(string memory <reason>);  // Abort execution and revert state changes
 Contract related variables and fucntions:
 
 ```
-this;  // Current contract, explicitly convertible to address (current contract's type)
+this;  // Instance of the current contract, explicitly convertible to address with `address(this)` (current contract's type)
 selfdestruct(address payable <recipient>);  Destroy the current contract sending its funds to the given address
 ```
 
