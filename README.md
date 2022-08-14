@@ -99,24 +99,6 @@ contract <contract-name> {
 }
 ```
 
-## State Variables
-
-A variable is a placeholder for data which can be manipulated at runtime. Variables allow users to retrieve and chage the stored information. State variables are stored in the contract storage area. They are stored in a compact way such that multiple values sometimes use the same storage slot.
-
-Except for dynamically-sized arrays and mappings, data is stored contiguously item after item starting with the first state variable, and for each variable, a size in bytes is determined according to its type.
-
-Dynamically-sized arrays an mappings, due to their unpredictable size, cannot be stored "in between" the state variables preceding and following them. Instead, they are considered to occupy  only 32 bytes  and the elements they contain are stored starting at a different storage slot that is computed using a Keccak-256 hash.
-
-There are cases where you will need to explicitly declare is a variable is stored in storage or in memory using the keywords `storage` and `memory`, namely when dealing with structs and arrays within functions.
-
-### State Variable Visibility
-
-State variables can be declared as **public**, **internal** or **private**.
-
-- **Public state variables** are declared using the `public` keyword after the data type. They are similar to internal ones, but differ in that the compiler automatically generates getter functions for them, which allows other contracts to read their values. When used within the same contract, the external access (e.g. `this.x`) invokes the getter, while internal access (e.g. `x`) gets the variable value directly from storage. Setter functions are not generated so other contracts cannot directly modify their values.
-- **Internal state variables** are declared using the `internal` keyword after the data type, although this is not needed, as it is the default visibility level for state variables. They can only be accessed from within the contract they are defined in and in derived contracts. They cannot be accessed externally.
-- **Private state variables** are declared using the `private` keyword after the data type. They are like innternal ones but they are not visible in derived contracts.
-
 ## Data Types
 
 Solidity is a statically typed language, which means that the type of each variable (state or local) needs to be specified. Solidity provides several elementary types which can be combined to form complex types.
@@ -275,6 +257,85 @@ You can query a value associated to some key in a mapping using the syntax `<map
 balances[msg.sender] = 1000;  // Set the value 1000 to the address "msg.sender" in balances mapping
 ```
 
+## State Variables
+
+A variable is a placeholder for data which can be manipulated at runtime. Variables allow users to retrieve and chage the stored information. State variables are stored in the contract storage area. They are stored in a compact way such that multiple values sometimes use the same storage slot.
+
+Except for dynamically-sized arrays and mappings, data is stored contiguously item after item starting with the first state variable, and for each variable, a size in bytes is determined according to its type.
+
+Dynamically-sized arrays an mappings, due to their unpredictable size, cannot be stored "in between" the state variables preceding and following them. Instead, they are considered to occupy  only 32 bytes  and the elements they contain are stored starting at a different storage slot that is computed using a Keccak-256 hash.
+
+There are cases where you will need to explicitly declare is a variable is stored in storage or in memory using the keywords `storage` and `memory`, namely when dealing with structs and arrays within functions.
+
+### State Variable Visibility
+
+State variables can be declared as **public**, **internal** or **private**.
+
+- **Public state variables** are declared using the `public` keyword after the data type. They are similar to internal ones, but differ in that the compiler automatically generates getter functions for them, which allows other contracts to read their values. When used within the same contract, the external access (e.g. `this.x`) invokes the getter, while internal access (e.g. `x`) gets the variable value directly from storage. Setter functions are not generated so other contracts cannot directly modify their values.
+- **Internal state variables** are declared using the `internal` keyword after the data type, although this is not needed, as it is the default visibility level for state variables. They can only be accessed from within the contract they are defined in and in derived contracts. They cannot be accessed externally.
+- **Private state variables** are declared using the `private` keyword after the data type. They are like innternal ones but they are not visible in derived contracts.
+
+## Global Variables and Functions
+
+There are special variables and functoins which always exist in the global namespace and are mainly used to provide information about the blockchain or are general-use utility functions. These are the most used global variables and functions.
+
+Parameters of the global variable `block`:
+
+```
+block.basefee;  // Current block's base fee (uint)
+block.chainid;  // Current chain id (uint)
+block.difficulty;  // Current block difficulty (uint)
+block.gaslimit;  // Current block gas limit (uint)
+block.number;  // Current block number (uint)
+block.timestamp;  // Current block timestamp as seconds since unix epoch (uint)
+```
+
+Parameters of the global variable `msg` (they can change for every external function call):
+
+```
+msg.data;  // Complete calldata (bytes calldata)
+msg.sender;  // Sender of the message in the current call (address)
+msg.value;  // Number of wei sent with the message (uint)
+```
+
+Parameters of the global variable `tx`:
+
+```
+tx.gasprice;  // Gas prive of the transaction (uint)
+tx.origin;  // Sender og the transaction (address)
+```
+
+ABI encoding and decoding functions:
+
+```
+abi.decode(bytes memory encodedData, (...)) returns (...); // ABI-decodes the given data. Types are given in parentheses
+abi.encode(...) returns (bytes memory);  // ABI-encodes the given data
+abi.encodePacked(...) returns (bytes memory);  // Packed encoding of the given arguments
+```
+
+Cryptographic functions:
+
+```
+keccak256(bytes memory) returns (bytes32);  // Compute the Keccak-256 hash of the input
+sha256(bytes memory) returns (bytes32);  // Compute the SHA-256 hash of the input
+ripemd160(bytes memory) returns (bytes20);  // Compute RIPEMD-160 hash of the input
+```
+
+Error handling functions:
+
+```
+assert(bool <condition>);  // Causes panic error and state change reversion if the condition is not met. To be used for internal errors
+require(bool <condition>, string memory <message>);  // Reverts if the condition is not met. To be used for external components
+revert(string memory <reason>);  // Abort execution and revert state changes
+```
+
+Contract related variables and fucntions:
+
+```
+this;  // Current contract, explicitly convertible to address (current contract's type)
+selfdestruct(address payable <recipient>);  Destroy the current contract sending its funds to the given address
+```
+
 ## Contracts
 
 Contracts in Solidity are similar to classes in object-oriented languages, and they consist a data type for themselves. Each contract can contain declarations of State Variables, Functions, Function Modifiers, Events, Errors, Struct Types and Enum Types.
@@ -410,8 +471,6 @@ contract ExtraStorage is SimpleStorage {
     }
 }
 ```
-
-
 
 ## Functions
 
