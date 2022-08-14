@@ -474,23 +474,39 @@ contract ExtraStorage is SimpleStorage {
 
 ## Functions
 
-Functions consist a data type for themselves. They are declared using the keyword `function`, followed by the name of the function.
+Functions consist a data type for themselves. 
+
+Functions are declared using the keyword `function`, followed by the name of the function and all parameters and return parameters. Function code is inside curly brackets. The syntax is the following:
+
+```
+function <function-name>() {
+    // ...
+}
+```
+
+A function creates its own scope, meaning that variables declared inside a function are only visible in the context of that function. This variable cannot be called from outside this function. Data area location can be `storage`, `memory` or `calldata` for local variables in functions, but it only have to be specified for array (including strings), struct and mapping types.
+
+In this example, we declare a function called "func", with three local variables declared inside it:
 
 ```
 function func() {
-    // ...
+    uint a = 2;
+    uint b = 4;
+    string memory message;
 }
 ```
 
 ### Function Parameters
 
-Functions take typed parameters as input. They are declared the same way as variables, and the name of the unused parameters can be omitted. Function parameters can be used as any other local variable and they can also be assigned to.
+Functions take typed parameters as input. They are declared the same way as variables, and the name of the unused parameters can be omitted. Function parameters can be used as any other local variable and they can also be assigned to. Data area location must be `memory` or `calldata` for parameters in functions, but it only have to be specified for array (including strings), struct and mapping types.
 
-In this example, we declare a function called "func" passing two parameters to it, specifying the data type for each parameter:
+In this example, we declare a function called "func" passing three parameters to it, specifying the data type for each parameter. Inside the function we declare three local variables, assigning to them the values passed as parameters:
 
 ```
-function func(uint a, uint b) {
-    // ...
+function func(uint _a, uint _b, string memory _message) {
+    uint a = _a;
+    uint b = _b;
+    string memory message = _message;
 }
 ```
 
@@ -505,11 +521,13 @@ Solidity knows two kinds of function calls: external ones that do create an actu
 
 The visibility specifier on a function is given after the parameter list and before the return list.
 
-In this example, we declare a function called "func" passing two parameters to it, and defining it as a public function:
+In this example, we declared the same function of the previous example, but adding the keyword `public` as a visible specifier:
 
 ```
-function func(uint a, uint b) public {
-    // ...
+function func(uint _a, uint _b, string memory _message) public {
+    uint a = _a;
+    uint b = _b;
+    string memory message = _message;
 }
 ```
 
@@ -522,34 +540,48 @@ Functions can also de defined as view functions or pure functions. View and pure
 
 The `view` and `pure` keywords are usually given after the parameter list and visibility specifier, and before the return list.
 
-In this example, we declare same function of the previous example, but adding the `pure` keyword to declare it as a pure function:
+In this example, we declare same function of the previous example, but adding the `pure` keyword to declare it as a pure function, as it does not modify the state (all variables assigned are declared inside the function, so they are not state variables, but only exists in the scope of the function):
 
 ```
-function func(uint a, uint b) public pure {
-    // ...
+function func(uint _a, uint _b, string memory _message) public pure {
+    uint a = _a;
+    uint b = _b;
+    string memory message = _message;
 }
 ```
 
 ### Return Variables
 
-Function return variables are declared with the same syntax of function parameters, and after the `returns` keyword, although the names of return variables can be omitted.
-
-Return variables can be used as any other local variable and they are initialized with their default value and have that value until they are (re-)assigned.
+Function return variables are declared with the same syntax of function parameters, and after the `returns` keyword, although the names of return variables can be omitted. Return variables can be used as any other local variable and they are initialized with their default value and have that value until they are (re-)assigned. Data area location must be `memory` or `calldata` for return parameters in functions, but it only have to be specified for array (including strings), struct and mapping types.
 
 In this example, we declare the same function of the previous example, but adding a return variable:
 
 ```
-function func(uint a, uint b) public pure returns (uint) {
-    // ...
+function func(uint _a, uint _b, string memory _message) public pure returns (uint) {
+    uint a = _a;
+    uint b = _b;
+    string memory message = _message;
     return a + b;
 }
 ```
 
-### Function Local Variables
+## Modifiers
 
-A function creates its own scope, meaning that variables declared inside a function are only visible in the context of that function. This variable cannot be called from outside this function.
+Modifiers can be used to change the behaviour of functions in a declarative way. For example, you can use a modifier to automatically check a condition prior to executing the function. If the function does not meet the modifier requirement, an exception is thrown, and the function execution stops.
 
+It is only possible to use modifiers defined in the current contract or its base contracts. Modifiers can also be defined in libraries but their use is limited to functions of the same library. Modifiers cannot implicitly access or change the arguments and return values of functions they modify. Their values can only be passed to them explicitly at the point of invocation.
 
+Modifiers are declared using the keyword `modifier`, followed by the name of the modifier. Modifier code is inside curly brackets. The syntax is the following:
+
+```
+modifier <modifier-name>() {
+    // ...
+    _
+}
+
+In this example, we define a modifier that checks 
+
+Once declared, modifiers can be added in the declaration of a function
 
 
 ## Events
