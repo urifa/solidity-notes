@@ -543,7 +543,7 @@ After the constructor has run, the final code of the contract is deployed to the
 Constructors are declared using the keyword `constructor`, and constructor code is inside curly brackets. The syntax is the following:
 
 ```
-constructor() {
+constructor(<variable-types>) {
     // ...
 }
 ```
@@ -559,6 +559,14 @@ uint public amount;
 constructor(uint _amount) {
     owner = msg.sender;
     amount = _amount;
+}
+```
+
+In contracts that inherits from other contracts, when we built the constructor we may need to provide input parameters to the parent contract, in case it has a constructor that ask for them:
+
+```
+constructor(<variable-types>) <ContractParentName>(<variable-values>) {
+    // ...
 }
 ```
 
@@ -620,13 +628,13 @@ You can add the attribute `indexed` to up to three parameters which adds them to
 Events are declared using the `event` keyword followed by the name of the event, and all variables in parentheses. The syntax is the following:
 
 ```
-event <event-name>(<variable-data-types>);
+event <event-name>(<variable-types>);
 ```
 
 When you want to trigger a previously delcared event, you must to emit it. Events are emitted using the `emit` keyword followed by the name of the event, and all values passed in parentheses. The syntax is the following:
 
 ```
-emit <event-name>( <variable-values> );
+emit <event-name>(<variable-values>);
 ```
 
 In this example, we declare an event called "Transfer()" that accepts two address parameters:
@@ -643,4 +651,21 @@ emit Transfer(msg.sender, 1000);
 
 ## Interfaces
 
+Interfaces are similar to abstract contracts. Their purpose is to separate the definition of functionality (function definitions) from the actual behaviour (function code), providing a customizable and re-usable approach for your contracts. 
+
+They are used in token standards like ERC-20 in order to make them interoperable across different applications, so any code that needs to use the token contract can use the same definitions in the interface and be compatible with all token contracts that use it.
+
+Interfaces are declared using the `interface` keyword followed by the name of the interface, and all function definitions are inside curly brackets. All declared function definitions must be external in the interface, even if they are public in the contract. Interfaces cannot declare a constructor, nor state variables or modifiers (thay are limited to what the Contract ABI can represent). The syntax to delcare an interface is the following:
+
+```
+interface <InterfaceName> {
+    // Function definitions
+}
+```
+
+All functions declared inside an interface are implicitly virtual, so there is no need to specify that with the `virtual` keyword. Also, functions from other contracts that override them do not need to use the `override` keyword.
+
+Contracts can inherit interfaces as they would inherit other contracts, and interfaces also can inherit from other interfaces.
+
+## Libraries
 
