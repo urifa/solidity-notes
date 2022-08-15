@@ -566,26 +566,80 @@ constructor(uint _amount) {
 
 Modifiers can be used to change the behaviour of functions in a declarative way. For example, you can use a modifier to automatically check a condition prior to executing the function. If the function does not meet the modifier requirement, an exception is thrown, and the function execution stops.
 
-It is only possible to use modifiers defined in the current contract or its base contracts. Modifiers can also be defined in libraries but their use is limited to functions of the same library. Modifiers cannot implicitly access or change the arguments and return values of functions they modify. Their values can only be passed to them explicitly at the point of invocation.
+It is only possible to use modifiers defined in the current contract or its base contracts. Modifiers can also be defined in libraries but their use is limited to functions of the same library. 
 
-Modifiers are declared using the keyword `modifier`, followed by the name of the modifier. Modifier code is inside curly brackets. The syntax is the following:
+Modifiers cannot implicitly access or change the arguments and return values of functions they modify. Their values can only be passed to them explicitly at the point of invocation.
+
+Modifiers are declared using the keyword `modifier`, followed by the name of the modifier. Modifier code is inside curly brackets, and must end with a `_;` statement, which is used to specify when the function should be executed. The syntax is the following:
 
 ```
 modifier <modifier-name>() {
     // ...
-    _
+    _;
 }
 ```
-In this example, we define a modifier that checks 
 
-Once declared, modifiers can be added in the declaration of a function
+Modifiers are useful to restrict that some function calls could only be performed by the owner of the contract. In this example, we use the same constructor used in the previous example, and add a modifier that will require the user that performs the function call to be the contract owner.
 
+```
+address public owner;
+uint public amount;
+
+constructor(uint _amount) {
+    owner = msg.sender;
+    amount = _amount;
+}
+
+modifier onlyOwner() {
+    require(owner == msg.sender, "You cannot call this function");
+    _;
+}
+```
+
+Once declared, modifiers can be added in the declaration of a function, to limit its execution according to the modifier. The modifier name must be added just before the return parameters.
+
+In this example, we use the function func() used in previous example, but adding the modifier we just created, so that only the owner of the contract will be able to call it.
+
+```
+function func(uint _a, uint _b, string memory _message) public pure onlyOwner returns (uint) {
+    uint a = _a;
+    uint b = _b;
+    string memory message = _message;
+    return a + b;
+}
+```
 
 ## Events
 
-### Event Definition
+Events give an abstraaction on top of the EVM's logging functionality. Applications can subscribe and listen to these events through the RPC interface of an Ethereum client.
 
-### Event Call
+Events are inheritable members of contracts, when you call them, they cause the arguments to be stored in the transaction's log.
+
+You can add the attribute `indexed` to up to three parameters which adds them to a special data structure known as "topics" instead of the data part of the log. Topics allows you to search for events, for example when filtering a sequence of blocks to certain events.
+
+Events are declared using the `event` keyword followed by the name of the event, and all variables in parentheses. The syntax is the following:
+
+```
+event <event-name>(<variable-data-types>);
+```
+
+When you want to trigger a previously delcared event, you must to emit it. Events are emitted using the `emit` keyword followed by the name of the event, and all values passed in parentheses. The syntax is the following:
+
+```
+emit <event-name>( <variable-values> );
+```
+
+In this example, we declare an event called "Transfer()" that accepts two address parameters:
+
+```
+event Transfer(address indexed _from, uint256 _amount);
+```
+
+We can later emit this event providing specific values for its parameters:
+
+```
+emit Transfer(msg.sender, 1000);
+```
 
 ## Interfaces
 
