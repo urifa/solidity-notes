@@ -2,17 +2,31 @@
 
 Quick Git reference with most used commands.
 
-## Ethereum Virtual Machine (EVM)
+## Smart Contracts and Solidity 
 
-The Ethereum Virtual Machine or EVM is the runtime environment for smart contracts in Ethereum.  It is completely isolated, which means that code running inside the EVM has no access to network, filesystems or other processes.
-
-EVM is an standard for how to deploy smart contracts in Ethereum' like blockchains. Some examples of EVM compatible blockchains are Avalanche, Fantom and Polygon. This means that you can write your solidity code and deploy it to these blockchains.
+Smart contracts are programs which govern the behaviour of accounts within the Ethereum state, and represent the fundamental building block of Ethereum applications. A contract in the sense of Solidity is a collection of code (its functions) and data (its state) that resides at a specific address on the Ethereum blockchain.
 
 There are two kinds of accounts in Ethereum which share the same address space: **external accounts**, which are controlled by public-private key pairs (i.e. humand), and **contract accounts**, which are controlled by the code stored together with the account.
 
 The address of an external account is determined from the public key while the address of a contract is determined at the time the contract is created and deployed (it is derived from the contract creator address and the number of transactions sent from that address).
 
-Both account types are treated equally by the EVM, and every one of them has a store mapping 256-bit words to 256-bit words called **storage**.
+The smart contract address is determined during its deployment and derives from the contract creator address and the number of transactions sent from that address. Every contract re-deployment results in a new contract address. This address will be visible on the Blockchain, and its code will be inmutable, just like a normal transaction.
+
+Deploying a contracts is similar to signing a transaction, and the address who deploys the contracts will spend some amount of Gas during its creation, decreasing their Ether balance as well.
+
+If the contract source code needs to be modified, a new contract deployment will be needed, so this will result in a different contract address (the old contracts will continue existing on its own contract address).
+
+Contracts users also can modify the state while interacting with the contract. Every function inside the contract that modifies the state of the blockchain results in a new transaction on the blockchain, with a Gas cost associated. Gas consumption depends on how computationally expensive is the action performed.
+
+Solidity is an object-oriented, high-level language for implementing smart contracts, and is designed to target the Ethereum Virtual Machine or EVM, which is the runtime environment for smart contracts in Ethereum.
+
+## Ethereum Virtual Machine (EVM)
+
+The EVM is the standard for how to deploy smart contracts in Ethereum' like blockchains. Some examples of EVM compatible blockchains are Avalanche, Fantom and Polygon. This means that you can write your solidity code and deploy it to these blockchains.
+
+The EVM is completely isolated, which means that code running inside the EVM has no access to network, filesystems or other processes.
+
+Both account types existing in Ethereum are treated equally by the Ethereum, and every one of them has a store mapping 256-bit words to 256-bit words called **storage**, as we will see next.
 
 ### Data Area Location
 
@@ -43,61 +57,6 @@ The called contract (which can be the same as the caller) will receive a freshly
 The EVM is not a register machine but a stack machine, so all computations are performed  on a data area called the **stack**. Access to the stack is limited to the top end in the following way: it is possible to copy one of the topmost 16 elements to the top of the stack or swap the topmost element with one of the 16 elements below it.
 
 The stack has a maximum size of 1024 elements and contains 256 bits. It is possible to move stack elements to storage or memory in order to get deeper sccess to the stack, but it is not possible to just access arbitrary elements deeper in the stack without first removing the top of the stack.
-
-## Smart Contracts
-
-A smart contract is the fundamental building block of Ethereum applications. A contract in the sense of Solidity is a collection of code (its functions) and data (its state) that resides at a specific address on the Ethereum blockchain.
-
-Deploying a contracts is similar to signing a transaction, and the address who deploys the contracts will spend some amount of Gas during its creation, decreasing their Ether balance as well.
-
-Every smart contract has also an address, that is determined during its deployment and derives from the contract creator address and the number of transactions sent from that address. Every contract re-deployment results in a new contract address.
-
-The contract address will be visible on the Blockchain (or the environment in which the contract has been deployed, in case of a test environment), and its code will be inmutable, just like a normal transaction.
-
-If the contract source code needs to be modified, a new contract deployment will be needed, so this will result in a different contract address (the old contracts will continue existing on its own contract address).
-
-Contracts users also can modify the state of the blockchains while interacting with the contract. Every function inside the contract that modifies the state of the blockchain results in a new transaction on the blockchain, with a Gas cost associated.
-
-Gas consumption depends on how computationally expensive is the action performed.
-
-## Solidity Source File Layout
-
-### License Identifier
-
-Every source file should start with a comment indicating its license.
-
-```
-// SPDX-License-Identifier: MIT
-```
-In this case, you are using the MIT license.
-
-### Pragmas
-
-A Solidity source code should start with the `pragma` keyword, which is used to enable certain compiler features or checks. Tipically is used as a declaration of the version of the Solidity compiler this code should use.
-
-These are some examples of how version pragma is used.
-
-In this example, version pragma indicates that the source file does not compile with a compiler earlier than version 0.5.2, and it does not work on a compiler starting from version 0.6.0.
-
-```
-pragma solidity ^0.5.2;
-```
-
-This version pragma indicates that the source file will compile with any compiler version in the range of 0.5.0 to 0.6.0 (exclusive).
-
-```
-pragma solidity >=0.5.0 <0.6.0;
-```
-
-### Contract Declaration
-
-Solidity's code is encapsulated in `contract`. Contracts declaration follows this pattern:
-
-```
-contract <contract-name> {
-    // ...
-}
-```
 
 ## Data Types
 
@@ -172,16 +131,18 @@ contract ContractTest {
 Once you declare a contract, it will result on a type on its own, so you can declare a variable containing an instamce of that contract, indicating the name of the contract as the data type for the variable. Example:
 
 ```
-ContractTest CT;
+ContractTest contractTest;
 ```
 
 Contract types can be explicitly converted to and from the address type. To convert an address to its corresponding contract instance you can use the following syntax: `<ContractName>(<ContractName Address>)`. Note that the address passed in should correspond to a specific instance of the contract. This is an example, assuming we have deployed ContractTest, and there is an instance of ContractTest in address 0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99.
 
 ```
-ContractTest CT = ContractTest(0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99);
+ContractTest contractTest = ContractTest(0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99);
 ```
 
 The members of contract types are the external functions of the contract including any state variable marked as `public`.
+
+We will cover contracts in more detail later in the *Contracts* section.
 
 #### Function Types
 
@@ -198,6 +159,8 @@ function eat(uint) public view returns (uint256) {
     // ...
 }
 ```
+
+We will cover functions in more detail later in the *Functions* section.
 
 ### Reference Types
 
@@ -366,19 +329,15 @@ contract <ContractName> {
 }
 ```
 
-Contracts are composable, meaning they can interact with each other.
+Contracts are composable, meaning they can interact with each other. When you want a contract to interact with another contracts, or to inherit from another contract, the current contract needs to know the source code of the contract to interact with, or to inherit from. To do this, you can have coth contracts on the same file, or import one contract' file into the other.
 
 ### Import Contract
 
-When you want a contract to interact with another contracts, or to inherit from another contract, the current contract needs to know the source code of the contract to interact with, or to inherit from. To do this, you can have coth contracts on the same file, or import one contract' file into the other. 
-
-The import statement is usually added after the pragma version, and has the following syntax:
+Importing the path of one contracts' file to another is like copying their source code, so makes the same effect of having both contracts o the same file. The import statement is usually added after the pragma version of the current contract, and has the following syntax:
 
 ```
-import "<contract1-file-path>
+import "<contract1-file-path>";
 ```
-
-Importing the path of one contracts' file is like copying their source code into the current contract, so makes the same effect of having both contracts o the same file.
 
 ### Deploy Contract from another Contract
 
@@ -395,10 +354,6 @@ SimpleStorage is a contract that has two functions, one to store a number, and a
 SimpleStorage contract code:
 
 ```
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.8;
-
 contract SimpleStorage {
 
     uint256 num;
@@ -419,10 +374,6 @@ StorageFactory is a contract that has a function that deploys the SimpleStorage 
 StorageFactory contract code:
 
 ```
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.8;
-
 import "./SimpleStorage";
 
 contract StorageFactory {
@@ -478,10 +429,6 @@ In this example, we add another contract named "ExtraStorage" that inherits from
 ExtraStorage contract code:
 
 ```
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.8;
-
 contract ExtraStorage is SimpleStorage {
     
     function store(uint256 _num) public override {
@@ -501,6 +448,8 @@ function <function-name>() {
     // ...
 }
 ```
+
+### Function Local Variables
 
 A function creates its own scope, meaning that variables declared inside a function are only visible in the context of that function. This variable cannot be called from outside this function. Data area location can be `storage`, `memory` or `calldata` for local variables in functions, but it only have to be specified for array (including strings), struct and mapping types.
 
@@ -583,6 +532,36 @@ function func(uint _a, uint _b, string memory _message) public pure returns (uin
 }
 ```
 
+## Constructors
+
+A constructor is an optional function that is automatically executed upon contract creation and where you can run contract initialisation code.
+
+Before the constructor code is executed, state variables are initialised to their specified value if you initialise them inline, or their default value of you do not.
+
+After the constructor has run, the final code of the contract is deployed to the blockchain. It includes all functions that are part of the public interface and all functions that are reachable from there through function calls, but it does not include the constructor code or internal functions that are only called from the constructor.
+
+Constructors are declared using the keyword `constructor`, and constructor code is inside curly brackets. The syntax is the following:
+
+```
+constructor() {
+    // ...
+}
+```
+
+Constructors can accept parameters, which are values that the user who deploys the contract will need to specify at the contract deployment.
+
+In this example, we declare a constructor that accepts a parameter, and initialize two state variables according to the address of the user who deploys the contract and the value they pass as a parameter.
+
+```
+address public owner;
+uint public amount;
+
+constructor(uint _amount) {
+    owner = msg.sender;
+    amount = _amount;
+}
+```
+
 ## Modifiers
 
 Modifiers can be used to change the behaviour of functions in a declarative way. For example, you can use a modifier to automatically check a condition prior to executing the function. If the function does not meet the modifier requirement, an exception is thrown, and the function execution stops.
@@ -596,7 +575,7 @@ modifier <modifier-name>() {
     // ...
     _
 }
-
+```
 In this example, we define a modifier that checks 
 
 Once declared, modifiers can be added in the declaration of a function
